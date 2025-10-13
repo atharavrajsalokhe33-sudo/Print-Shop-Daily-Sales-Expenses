@@ -1,70 +1,51 @@
 import reflex as rx
+from app.states.print_state import PrintState
 
 
 def payment_view() -> rx.Component:
     return rx.el.div(
         rx.el.h1("Online Payments", class_name="text-3xl font-bold text-gray-800"),
         rx.el.p(
-            "Accept payments from your customers.", class_name="text-gray-500 mt-1"
+            "Scan the QR code or use the UPI details below to make a payment.",
+            class_name="text-gray-500 mt-1",
         ),
         rx.el.div(
-            rx.el.form(
-                rx.el.div(
-                    rx.el.label(
-                        "Amount (₹)",
-                        html_for="payment_amount",
-                        class_name="text-sm font-medium text-gray-700",
-                    ),
-                    rx.el.input(
-                        id="payment_amount",
-                        name="amount",
-                        type="number",
-                        step="0.01",
-                        placeholder="Enter amount",
-                        class_name="w-full mt-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all",
-                    ),
-                    class_name="mb-4",
+            rx.el.div(
+                rx.el.h2(
+                    "Scan to Pay",
+                    class_name="text-lg font-semibold text-gray-700 mb-4 text-center",
                 ),
-                rx.el.div(
-                    rx.el.label(
-                        "Customer Name",
-                        html_for="customer_name",
-                        class_name="text-sm font-medium text-gray-700",
-                    ),
-                    rx.el.input(
-                        id="customer_name",
-                        name="customer_name",
-                        placeholder="e.g., John Doe",
-                        class_name="w-full mt-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all",
-                    ),
-                    class_name="mb-4",
+                rx.el.image(
+                    src=PrintState.business_qr_code_url,
+                    alt="Business Payment QR Code",
+                    class_name="w-64 h-64 mx-auto rounded-lg border border-gray-300 shadow-md",
                 ),
-                rx.el.div(
-                    rx.el.label(
-                        "Payment Description",
-                        html_for="payment_description",
-                        class_name="text-sm font-medium text-gray-700",
-                    ),
-                    rx.el.input(
-                        id="payment_description",
-                        name="description",
-                        placeholder="e.g., Invoice #1234",
-                        class_name="w-full mt-1 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all",
-                    ),
-                    class_name="mb-6",
-                ),
-                rx.el.button(
-                    "Generate Payment Link",
-                    rx.icon("link", class_name="ml-2"),
-                    type="submit",
-                    class_name="w-full p-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors shadow-lg hover:shadow-purple-300/50 flex items-center justify-center",
-                ),
-                on_submit=lambda: rx.toast(
-                    "This feature is a placeholder and not yet implemented."
-                ),
-                reset_on_submit=True,
+                class_name="mb-8",
             ),
-            class_name="bg-white p-8 rounded-2xl border border-gray-200/80 shadow-sm w-full max-w-lg mt-8",
+            rx.el.div(
+                rx.el.h3(
+                    "Or use UPI Details",
+                    class_name="text-lg font-semibold text-gray-700 mb-4",
+                ),
+                rx.el.div(
+                    rx.el.p("UPI ID:", class_name="font-medium text-gray-600"),
+                    rx.el.p(
+                        PrintState.business_upi_id,
+                        class_name="font-mono text-purple-600 bg-purple-50 px-2 py-1 rounded",
+                    ),
+                    class_name="flex justify-between items-center py-2 border-b",
+                ),
+                rx.el.div(
+                    rx.el.p("UPI Number:", class_name="font-medium text-gray-600"),
+                    rx.el.p(
+                        PrintState.business_upi_number,
+                        class_name="font-mono text-purple-600 bg-purple-50 px-2 py-1 rounded",
+                    ),
+                    class_name="flex justify-between items-center py-2",
+                ),
+                class_name="w-full",
+            ),
+            class_name="bg-white p-8 rounded-2xl border border-gray-200/80 shadow-sm w-full max-w-sm mt-8",
         ),
         class_name="w-full flex flex-col items-center",
     )

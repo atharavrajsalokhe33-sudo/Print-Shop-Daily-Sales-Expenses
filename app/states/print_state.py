@@ -48,6 +48,9 @@ class PrintState(rx.State):
     form_type: TransactionType = "print"
     print_type: str = "color"
     active_view: str = "dashboard"
+    business_upi_id: str = "your.business@upi"
+    business_upi_number: str = "9876543210"
+    business_qr_code_url: str = "/placeholder.svg"
 
     def _get_transactions(self) -> list[Transaction]:
         try:
