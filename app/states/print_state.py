@@ -3,6 +3,7 @@ from typing import TypedDict, Literal
 import datetime
 import time
 import logging
+import json
 
 TransactionType = Literal["print", "expense"]
 
@@ -15,35 +16,51 @@ class Transaction(TypedDict):
     amount: float
 
 
+DEFAULT_TRANSACTIONS = [
+    {
+        "id": 1718883600.0,
+        "timestamp": "2024-06-20",
+        "type": "print",
+        "description": "Color Print (5 pages)",
+        "amount": 50.0,
+    },
+    {
+        "id": 1718883660.0,
+        "timestamp": "2024-06-20",
+        "type": "expense",
+        "description": "Paper Ream",
+        "amount": -550.0,
+    },
+    {
+        "id": 1718883720.0,
+        "timestamp": "2024-06-21",
+        "type": "print",
+        "description": "B&W 1-Side (20 pages)",
+        "amount": 40.0,
+    },
+]
+
+
 class PrintState(rx.State):
-    transactions: list[Transaction] = [
-        {
-            "id": 1718883600.0,
-            "timestamp": "2024-06-20",
-            "type": "print",
-            "description": "Color Print (5 pages)",
-            "amount": 50.0,
-        },
-        {
-            "id": 1718883660.0,
-            "timestamp": "2024-06-20",
-            "type": "expense",
-            "description": "Paper Ream",
-            "amount": -550.0,
-        },
-        {
-            "id": 1718883720.0,
-            "timestamp": "2024-06-21",
-            "type": "print",
-            "description": "B&W 1-Side (20 pages)",
-            "amount": 40.0,
-        },
-    ]
+    transactions_json: str = rx.LocalStorage(
+        json.dumps(DEFAULT_TRANSACTIONS), name="transactions"
+    )
     form_type: TransactionType = "print"
     print_type: str = "color"
-    show_toast: bool = False
-    toast_message: str = ""
-    toast_type: str = "success"
+
+    def _get_transactions(self) -> list[Transaction]:
+        try:
+            return json.loads(self.transactions_json)
+        except (json.JSONDecodeError, TypeError) as e:
+            logging.exception(f"Error: {e}")
+            return []
+
+    def _save_transactions(self, transactions: list[Transaction]):
+        self.transactions_json = json.dumps(transactions)
+
+    @rx.var
+    def transactions(self) -> list[Transaction]:
+        return self._get_transactions()
 
     @rx.var
     def total_collection(self) -> float:
@@ -98,6 +115,7 @@ class PrintState(rx.State):
         try:
             new_id = time.time()
             today_str = datetime.date.today().isoformat()
+            transactions = self._get_transactions()
             if self.form_type == "print":
                 pages = int(form_data.get("pages", 0))
                 if pages <= 0:
@@ -120,7 +138,7 @@ class PrintState(rx.State):
                         "Amount for color print must be positive.", duration=3000
                     )
                     return
-                self.transactions.append(
+                transactions.append(
                     {
                         "id": new_id,
                         "timestamp": today_str,
@@ -139,7 +157,7 @@ class PrintState(rx.State):
                         duration=3000,
                     )
                     return
-                self.transactions.append(
+                transactions.append(
                     {
                         "id": new_id,
                         "timestamp": today_str,
@@ -149,11 +167,14 @@ class PrintState(rx.State):
                     }
                 )
                 yield rx.toast("Expense recorded successfully!", duration=3000)
+            self._save_transactions(transactions)
         except (ValueError, KeyError) as e:
             logging.exception(f"Error: {e}")
             yield rx.toast(f"Invalid form data: {e}", duration=4000)
 
     @rx.event
     def delete_transaction(self, transaction_id: float):
-        self.transactions = [t for t in self.transactions if t["id"] != transaction_id]
+        transactions = self._get_transactions()
+        transactions = [t for t in transactions if t["id"] != transaction_id]
+        self._save_transactions(transactions)
         yield rx.toast("Transaction deleted.", duration=3000)

@@ -2,9 +2,12 @@ import reflex as rx
 from app.components.dashboard_header import dashboard_header
 from app.components.transaction_form import transaction_form
 from app.components.transaction_list import transaction_list
+from app.states.auth_state import AuthState
+from app.pages.login import login
 
 
 def index() -> rx.Component:
+    """The main dashboard page."""
     return rx.el.main(
         rx.el.div(
             dashboard_header(),
@@ -30,4 +33,5 @@ app = rx.App(
         ),
     ],
 )
-app.add_page(index)
+app.add_page(index, route="/", on_load=AuthState.check_login)
+app.add_page(login, route="/login")
