@@ -8,12 +8,18 @@ def transaction_item(transaction: Transaction) -> rx.Component:
         rx.el.div(
             rx.el.div(
                 rx.icon(
-                    rx.cond(transaction["type"] == "print", "printer", "shopping-cart"),
+                    rx.match(
+                        transaction["type"],
+                        ("print", "printer"),
+                        ("expense", "shopping-cart"),
+                        ("cash", "wallet"),
+                        "dollar-sign",
+                    ),
                     size=20,
                     class_name="text-gray-500",
                 ),
                 class_name=rx.cond(
-                    transaction["type"] == "print",
+                    transaction["amount"] > 0,
                     "p-3 bg-green-100 rounded-full",
                     "p-3 bg-red-100 rounded-full",
                 ),

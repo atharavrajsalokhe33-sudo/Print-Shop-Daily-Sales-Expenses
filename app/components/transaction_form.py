@@ -64,6 +64,48 @@ def _expense_form_fields() -> rx.Component:
     )
 
 
+def _cash_form_fields() -> rx.Component:
+    return rx.el.div(
+        rx.el.input(
+            name="description",
+            placeholder="Cash Transaction Description",
+            class_name="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all",
+        ),
+        rx.el.input(
+            name="amount",
+            placeholder="Amount (₹)",
+            type="number",
+            step="0.01",
+            class_name="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all",
+        ),
+        rx.el.div(
+            rx.el.label(
+                rx.el.input(
+                    type="radio",
+                    name="cash_direction",
+                    value="in",
+                    default_checked=True,
+                    class_name="mr-2 h-4 w-4 text-purple-600 border-gray-300 focus:ring-purple-500",
+                ),
+                "Cash In (Revenue)",
+                class_name="flex items-center text-sm text-gray-700",
+            ),
+            rx.el.label(
+                rx.el.input(
+                    type="radio",
+                    name="cash_direction",
+                    value="out",
+                    class_name="mr-2 h-4 w-4 text-purple-600 border-gray-300 focus:ring-purple-500",
+                ),
+                "Cash Out (Cost)",
+                class_name="flex items-center text-sm text-gray-700",
+            ),
+            class_name="flex gap-6 mt-2",
+        ),
+        class_name="flex flex-col gap-4",
+    )
+
+
 def transaction_form() -> rx.Component:
     return rx.el.div(
         rx.el.h2(
@@ -74,18 +116,23 @@ def transaction_form() -> rx.Component:
                 rx.el.div(
                     _form_button("Print Job", "print"),
                     _form_button("Expense", "expense"),
+                    _form_button("Cash", "cash"),
                     class_name="flex gap-2 p-1 bg-gray-100 rounded-xl w-fit mb-6",
                 ),
-                rx.cond(
-                    PrintState.form_type == "print",
+                rx.match(
+                    PrintState.form_type,
+                    ("print", _print_form_fields()),
+                    ("expense", _expense_form_fields()),
+                    ("cash", _cash_form_fields()),
                     _print_form_fields(),
-                    _expense_form_fields(),
                 ),
                 rx.el.button(
-                    rx.cond(
-                        PrintState.form_type == "print",
-                        "Add Print Job",
-                        "Record Expense",
+                    rx.match(
+                        PrintState.form_type,
+                        ("print", "Add Print Job"),
+                        ("expense", "Record Expense"),
+                        ("cash", "Record Cash"),
+                        "Submit",
                     ),
                     rx.icon("arrow-right", class_name="ml-2"),
                     type="submit",

@@ -5,7 +5,7 @@ import time
 import logging
 import json
 
-TransactionType = Literal["print", "expense"]
+TransactionType = Literal["print", "expense", "cash"]
 
 
 class Transaction(TypedDict):
@@ -172,6 +172,27 @@ class PrintState(rx.State):
                     }
                 )
                 yield rx.toast("Expense recorded successfully!", duration=3000)
+            elif self.form_type == "cash":
+                description = form_data.get("description", "").strip()
+                amount = float(form_data.get("amount", 0))
+                direction = form_data.get("cash_direction", "in")
+                if not description or amount <= 0:
+                    yield rx.toast(
+                        "Cash transaction description and positive amount are required.",
+                        duration=3000,
+                    )
+                    return
+                final_amount = amount if direction == "in" else -amount
+                transactions.append(
+                    {
+                        "id": new_id,
+                        "timestamp": today_str,
+                        "type": "cash",
+                        "description": description,
+                        "amount": final_amount,
+                    }
+                )
+                yield rx.toast("Cash transaction recorded successfully!", duration=3000)
             self._save_transactions(transactions)
         except (ValueError, KeyError) as e:
             logging.exception(f"Error: {e}")
