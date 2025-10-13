@@ -118,6 +118,34 @@ class PrintState(rx.State):
     def set_print_type(self, type: str):
         self.print_type = type
 
+    def _add_cash_transaction(self, form_data: dict) -> list[rx.event.EventSpec]:
+        """Helper to add a cash transaction."""
+        description = form_data.get("description", "").strip()
+        if not description:
+            description = "Cash Transaction"
+        amount = float(form_data.get("amount", 0))
+        direction = form_data.get("cash_direction", "in")
+        if amount <= 0:
+            return [
+                rx.toast(
+                    "A positive amount is required for cash transactions.",
+                    duration=3000,
+                )
+            ]
+        final_amount = amount if direction == "in" else -amount
+        transactions = self._get_transactions()
+        transactions.append(
+            {
+                "id": time.time(),
+                "timestamp": datetime.date.today().isoformat(),
+                "type": "cash",
+                "description": description,
+                "amount": final_amount,
+            }
+        )
+        self._save_transactions(transactions)
+        return [rx.toast("Cash transaction recorded successfully!", duration=3000)]
+
     @rx.event
     def add_transaction(self, form_data: dict):
         try:
@@ -155,6 +183,7 @@ class PrintState(rx.State):
                         "amount": amount,
                     }
                 )
+                self._save_transactions(transactions)
                 yield rx.toast("Print job added successfully!", duration=3000)
             elif self.form_type == "expense":
                 description = form_data.get("description", "").strip()
@@ -174,29 +203,22 @@ class PrintState(rx.State):
                         "amount": -amount,
                     }
                 )
+                self._save_transactions(transactions)
                 yield rx.toast("Expense recorded successfully!", duration=3000)
             elif self.form_type == "cash":
-                description = form_data.get("description", "").strip()
-                amount = float(form_data.get("amount", 0))
-                direction = form_data.get("cash_direction", "in")
-                if not description or amount <= 0:
-                    yield rx.toast(
-                        "Cash transaction description and positive amount are required.",
-                        duration=3000,
-                    )
-                    return
-                final_amount = amount if direction == "in" else -amount
-                transactions.append(
-                    {
-                        "id": new_id,
-                        "timestamp": today_str,
-                        "type": "cash",
-                        "description": description,
-                        "amount": final_amount,
-                    }
-                )
-                yield rx.toast("Cash transaction recorded successfully!", duration=3000)
-            self._save_transactions(transactions)
+                events = self._add_cash_transaction(form_data)
+                for event in events:
+                    yield event
+        except (ValueError, KeyError) as e:
+            logging.exception(f"Error: {e}")
+            yield rx.toast(f"Invalid form data: {e}", duration=4000)
+
+    @rx.event
+    def add_cash_transaction_from_payment_view(self, form_data: dict):
+        try:
+            events = self._add_cash_transaction(form_data)
+            for event in events:
+                yield event
         except (ValueError, KeyError) as e:
             logging.exception(f"Error: {e}")
             yield rx.toast(f"Invalid form data: {e}", duration=4000)

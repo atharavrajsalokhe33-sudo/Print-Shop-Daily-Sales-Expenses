@@ -68,7 +68,7 @@ def _cash_form_fields() -> rx.Component:
     return rx.el.div(
         rx.el.input(
             name="description",
-            placeholder="Cash Transaction Description",
+            placeholder="Write a note (optional)",
             class_name="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all",
         ),
         rx.el.input(
