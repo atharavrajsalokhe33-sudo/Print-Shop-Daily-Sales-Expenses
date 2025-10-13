@@ -9,7 +9,7 @@ USERS: dict[str, str] = {
 class AuthState(rx.State):
     """The authentication state."""
 
-    in_session: bool = rx.LocalStorage(False, name="in_session")
+    in_session: bool = rx.LocalStorage(False, sync="in_session")
     error_message: str = ""
 
     @rx.event
