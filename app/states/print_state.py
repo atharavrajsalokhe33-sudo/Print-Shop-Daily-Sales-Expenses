@@ -51,6 +51,9 @@ class PrintState(rx.State):
     business_upi_id: str = "your.business@upi"
     business_upi_number: str = "9876543210"
     business_qr_code_url: str = "/placeholder.svg"
+    invoice_selected_transactions: set[float] = set()
+    invoice_customer_name: str = ""
+    invoice_number: str = ""
 
     def _get_transactions(self) -> list[Transaction]:
         try:
@@ -105,6 +108,72 @@ class PrintState(rx.State):
     @rx.var
     def recent_transactions(self) -> list[Transaction]:
         return sorted(self.transactions, key=lambda t: t["id"], reverse=True)
+
+    @rx.var
+    def invoice_total(self) -> float:
+        """Calculates the total amount for the selected invoice transactions."""
+        selected_txs = {
+            t
+            for t in self.transactions
+            if t["id"] in self.invoice_selected_transactions
+        }
+        return sum((t["amount"] for t in selected_txs))
+
+    @rx.event
+    def set_invoice_customer_name(self, name: str):
+        self.invoice_customer_name = name
+
+    @rx.event
+    def set_invoice_number(self, num: str):
+        self.invoice_number = num
+
+    @rx.event
+    def toggle_invoice_transaction(self, transaction_id: float):
+        if transaction_id in self.invoice_selected_transactions:
+            self.invoice_selected_transactions.remove(transaction_id)
+        else:
+            self.invoice_selected_transactions.add(transaction_id)
+
+    @rx.event
+    def generate_invoice(self):
+        if not self.invoice_selected_transactions:
+            return rx.toast("Please select at least one transaction.", duration=3000)
+        all_transactions = self._get_transactions()
+        selected_txs = [
+            t for t in all_transactions if t["id"] in self.invoice_selected_transactions
+        ]
+        total_amount = sum((t["amount"] for t in selected_txs))
+        invoice_content = [
+            "===================================",
+            "             INVOICE               ",
+            "===================================",
+            f"Invoice #: {self.invoice_number or 'N/A'}",
+            f"Customer: {self.invoice_customer_name or 'N/A'}",
+            f"Date: {datetime.date.today().isoformat()}",
+            "-----------------------------------",
+            "Description          Amount",
+            "-----------------------------------",
+        ]
+        for tx in selected_txs:
+            description = tx["description"][:20].ljust(20)
+            amount_str = f"Rs {tx['amount']:.2f}".rjust(12)
+            invoice_content.append(f"{description} {amount_str}")
+        invoice_content.extend(
+            [
+                "-----------------------------------",
+                f"TOTAL:               Rs {total_amount:.2f}",
+                "===================================",
+                """
+Thank you for your business!""",
+            ]
+        )
+        invoice_data = """
+""".join(invoice_content)
+        file_name = f"invoice_{self.invoice_number or int(time.time())}.txt"
+        self.invoice_selected_transactions = set()
+        self.invoice_customer_name = ""
+        self.invoice_number = ""
+        return rx.download(data=invoice_data, filename=file_name)
 
     @rx.event
     def set_active_view(self, view: str):

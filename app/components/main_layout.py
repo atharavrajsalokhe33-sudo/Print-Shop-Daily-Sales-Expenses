@@ -4,6 +4,7 @@ from app.components.bottom_nav import bottom_nav
 from app.components.dashboard_header import dashboard_view
 from app.components.transaction_list import transactions_view
 from app.components.payment_view import payment_view
+from app.components.invoice_view import invoice_view
 
 
 def main_layout() -> rx.Component:
@@ -13,6 +14,7 @@ def main_layout() -> rx.Component:
                 PrintState.active_view,
                 ("dashboard", dashboard_view()),
                 ("add", transactions_view()),
+                ("invoice", invoice_view()),
                 ("payment", payment_view()),
                 dashboard_view(),
             ),
