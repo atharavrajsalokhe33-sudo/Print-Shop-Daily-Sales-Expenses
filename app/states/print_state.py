@@ -205,10 +205,6 @@ class PrintState(rx.State):
                 )
                 self._save_transactions(transactions)
                 yield rx.toast("Expense recorded successfully!", duration=3000)
-            elif self.form_type == "cash":
-                events = self._add_cash_transaction(form_data)
-                for event in events:
-                    yield event
         except (ValueError, KeyError) as e:
             logging.exception(f"Error: {e}")
             yield rx.toast(f"Invalid form data: {e}", duration=4000)
