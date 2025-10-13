@@ -5,7 +5,7 @@ from app.states.print_state import PrintState
 def _form_button(text: str, form_type: str) -> rx.Component:
     return rx.el.button(
         text,
-        on_click=PrintState.set_form_type(form_type),
+        on_click=lambda: PrintState.set_form_type(form_type),
         class_name=rx.cond(
             PrintState.form_type == form_type,
             "px-4 py-2 text-sm font-semibold text-white bg-purple-600 rounded-lg shadow-sm",

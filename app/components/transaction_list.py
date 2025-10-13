@@ -48,7 +48,7 @@ def transaction_item(transaction: Transaction) -> rx.Component:
             ),
             rx.el.button(
                 rx.icon("trash-2", size=16),
-                on_click=PrintState.delete_transaction(transaction["id"]),
+                on_click=lambda: PrintState.delete_transaction(transaction["id"]),
                 class_name="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors",
                 type="button",
             ),

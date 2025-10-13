@@ -8,7 +8,7 @@ def _invoice_transaction_item(transaction: Transaction) -> rx.Component:
         rx.el.div(
             rx.el.input(
                 type="checkbox",
-                is_checked=is_selected,
+                checked=is_selected,
                 on_change=lambda _: PrintState.toggle_invoice_transaction(
                     transaction["id"]
                 ),
@@ -80,7 +80,7 @@ def invoice_view() -> rx.Component:
                     "Generate & Download Invoice",
                     rx.icon("download", class_name="ml-2"),
                     on_click=PrintState.generate_invoice,
-                    is_disabled=PrintState.invoice_selected_transactions.length() == 0,
+                    disabled=PrintState.invoice_selected_transactions.length() == 0,
                     class_name="w-full mt-4 p-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center",
                 ),
                 class_name="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm",

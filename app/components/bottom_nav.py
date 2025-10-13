@@ -19,7 +19,7 @@ def _nav_button(icon: str, text: str, view: str) -> rx.Component:
             ),
             class_name="flex flex-col items-center gap-1",
         ),
-        on_click=PrintState.set_active_view(view),
+        on_click=lambda: PrintState.set_active_view(view),
         class_name="flex-1 p-2 rounded-lg",
     )
 
