@@ -43,7 +43,7 @@ DEFAULT_TRANSACTIONS = [
 
 class PrintState(rx.State):
     transactions_json: str = rx.LocalStorage(
-        json.dumps(DEFAULT_TRANSACTIONS), name="transactions"
+        json.dumps(DEFAULT_TRANSACTIONS), sync=True, name="transactions"
     )
     form_type: TransactionType = "print"
     print_type: str = "color"
