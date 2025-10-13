@@ -1,25 +1,10 @@
 import reflex as rx
-from app.components.dashboard_header import dashboard_header
-from app.components.transaction_form import transaction_form
-from app.components.transaction_list import transaction_list
-from app.states.auth_state import AuthState
-from app.pages.login import login
+from app.components.main_layout import main_layout
 
 
 def index() -> rx.Component:
-    """The main dashboard page."""
-    return rx.el.main(
-        rx.el.div(
-            dashboard_header(),
-            rx.el.div(
-                transaction_form(),
-                transaction_list(),
-                class_name="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mt-12",
-            ),
-            class_name="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12",
-        ),
-        class_name="font-['Montserrat'] bg-gray-50 min-h-screen",
-    )
+    """The main app page."""
+    return main_layout()
 
 
 app = rx.App(
@@ -33,5 +18,4 @@ app = rx.App(
         ),
     ],
 )
-app.add_page(index, route="/", on_load=AuthState.check_login)
-app.add_page(login, route="/login")
+app.add_page(index, route="/")

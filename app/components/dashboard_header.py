@@ -1,29 +1,16 @@
 import reflex as rx
 from app.states.print_state import PrintState
-from app.states.auth_state import AuthState
 from app.components.stat_card import stat_card
 
 
-def dashboard_header() -> rx.Component:
+def dashboard_view() -> rx.Component:
     return rx.el.div(
         rx.el.div(
-            rx.el.div(
-                rx.el.h1(
-                    "Printing Business Dashboard",
-                    class_name="text-3xl font-bold text-gray-800 mb-2",
-                ),
-                rx.el.p(
-                    "Track your daily and overall financial performance.",
-                    class_name="text-gray-500 mb-8",
-                ),
+            rx.el.h1("Dashboard", class_name="text-3xl font-bold text-gray-800"),
+            rx.el.p(
+                "Your business performance at a glance.",
+                class_name="text-gray-500 mt-1",
             ),
-            rx.el.button(
-                "Sign Out",
-                rx.icon("log-out", class_name="ml-2 h-4 w-4"),
-                on_click=AuthState.logout,
-                class_name="flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors text-white shadow bg-red-500 hover:bg-red-600 h-9 px-4 py-2",
-            ),
-            class_name="flex justify-between items-start",
         ),
         rx.el.div(
             stat_card(
@@ -56,7 +43,7 @@ def dashboard_header() -> rx.Component:
                 value=PrintState.net_balance,
                 color="blue",
             ),
-            class_name="flex flex-wrap gap-6 mt-6",
+            class_name="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8",
         ),
         class_name="w-full",
     )

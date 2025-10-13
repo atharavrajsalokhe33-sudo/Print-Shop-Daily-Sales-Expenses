@@ -1,5 +1,6 @@
 import reflex as rx
 from app.states.print_state import PrintState, Transaction
+from app.components.transaction_form import transaction_form
 
 
 def transaction_item(transaction: Transaction) -> rx.Component:
@@ -51,21 +52,29 @@ def transaction_item(transaction: Transaction) -> rx.Component:
     )
 
 
-def transaction_list() -> rx.Component:
+def transactions_view() -> rx.Component:
     return rx.el.div(
-        rx.el.h2(
-            "Recent Transactions", class_name="text-xl font-bold text-gray-800 mb-4"
-        ),
         rx.el.div(
-            rx.cond(
-                PrintState.recent_transactions.length() > 0,
-                rx.foreach(PrintState.recent_transactions, transaction_item),
-                rx.el.div(
-                    rx.el.p("No transactions yet.", class_name="text-gray-500"),
-                    class_name="flex justify-center items-center h-32",
+            transaction_form(),
+            rx.el.div(
+                rx.el.h2(
+                    "Recent Transactions",
+                    class_name="text-xl font-bold text-gray-800 mb-4",
                 ),
+                rx.el.div(
+                    rx.cond(
+                        PrintState.recent_transactions.length() > 0,
+                        rx.foreach(PrintState.recent_transactions, transaction_item),
+                        rx.el.div(
+                            rx.el.p("No transactions yet.", class_name="text-gray-500"),
+                            class_name="flex justify-center items-center h-32",
+                        ),
+                    ),
+                    class_name="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden",
+                ),
+                class_name="w-full",
             ),
-            class_name="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden",
+            class_name="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start",
         ),
         class_name="w-full",
     )

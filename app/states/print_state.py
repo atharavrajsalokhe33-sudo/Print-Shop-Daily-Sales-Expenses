@@ -47,6 +47,7 @@ class PrintState(rx.State):
     )
     form_type: TransactionType = "print"
     print_type: str = "color"
+    active_view: str = "dashboard"
 
     def _get_transactions(self) -> list[Transaction]:
         try:
@@ -101,6 +102,10 @@ class PrintState(rx.State):
     @rx.var
     def recent_transactions(self) -> list[Transaction]:
         return sorted(self.transactions, key=lambda t: t["id"], reverse=True)
+
+    @rx.event
+    def set_active_view(self, view: str):
+        self.active_view = view
 
     @rx.event
     def set_form_type(self, type: TransactionType):
