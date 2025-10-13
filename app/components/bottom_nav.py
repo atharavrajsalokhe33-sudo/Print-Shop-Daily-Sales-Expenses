@@ -29,6 +29,5 @@ def bottom_nav() -> rx.Component:
         _nav_button("layout-dashboard", "Dashboard", "dashboard"),
         _nav_button("file-plus-2", "Add", "add"),
         _nav_button("file-text", "Invoice", "invoice"),
-        _nav_button("indian-rupee", "Payments", "payment"),
         class_name="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-sm border-t border-gray-200 flex justify-around items-center p-2 z-50 md:hidden",
     )

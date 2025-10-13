@@ -6,7 +6,10 @@ from app.components.stat_card import stat_card
 def dashboard_view() -> rx.Component:
     return rx.el.div(
         rx.el.div(
-            rx.el.h1("Dashboard", class_name="text-3xl font-bold text-gray-800"),
+            rx.el.h1(
+                f"{PrintState.business_name}",
+                class_name="text-3xl font-bold text-gray-800",
+            ),
             rx.el.p(
                 "Your business performance at a glance.",
                 class_name="text-gray-500 mt-1",
