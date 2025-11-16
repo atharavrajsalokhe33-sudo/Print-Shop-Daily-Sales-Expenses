@@ -68,7 +68,6 @@ class PrintState(rx.State):
     invoice_selected_transactions: set[float] = set()
     invoice_customer_name: str = ""
     invoice_number: str = ""
-    add_selected_transactions: set[float] = set()
 
     def _get_transactions(self) -> list[Transaction]:
         try:
@@ -135,14 +134,6 @@ class PrintState(rx.State):
         return sum((t["amount"] for t in selected_txs))
 
     @rx.var
-    def add_invoice_total(self) -> float:
-        """Calculates the total amount for the selected transactions in the Add view."""
-        selected_txs = {
-            t for t in self.transactions if t["id"] in self.add_selected_transactions
-        }
-        return sum((t["amount"] for t in selected_txs if t["amount"] > 0))
-
-    @rx.var
     def is_share_disabled(self) -> bool:
         return (
             len(self.invoice_selected_transactions) == 0
@@ -192,34 +183,6 @@ class PrintState(rx.State):
             self.invoice_selected_transactions.remove(transaction_id)
         else:
             self.invoice_selected_transactions.add(transaction_id)
-
-    @rx.event
-    def toggle_add_transaction(self, transaction_id: float):
-        if transaction_id in self.add_selected_transactions:
-            self.add_selected_transactions.remove(transaction_id)
-        else:
-            self.add_selected_transactions.add(transaction_id)
-
-    def _generate_add_invoice_content(self) -> str:
-        if not self.add_selected_transactions:
-            return ""
-        all_transactions = self._get_transactions()
-        selected_txs = [
-            t
-            for t in all_transactions
-            if t["id"] in self.add_selected_transactions and t["amount"] > 0
-        ]
-        total_amount = sum((t["amount"] for t in selected_txs))
-        invoice_date = datetime.date.today().isoformat()
-        header = f"*INVOICE - {self.business_name}*\n\n"
-        details = f"Date: {invoice_date}\n\n"
-        items_header = """*Items:*
-"""
-        items = """
-""".join([f"- {tx['description']}: ₹{tx['amount']:.2f}" for tx in selected_txs])
-        total_section = f"\n\n*TOTAL: ₹{total_amount:.2f}*"
-        footer = f"\n\nThank you!\n- {self.business_name} -"
-        return f"{header}{details}{items_header}{items}{total_section}{footer}"
 
     @rx.event
     def share_invoice(self):
