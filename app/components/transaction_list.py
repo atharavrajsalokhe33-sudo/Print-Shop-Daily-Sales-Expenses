@@ -112,13 +112,6 @@ def transactions_view() -> rx.Component:
                         ),
                         class_name="text-lg text-gray-600 font-medium",
                     ),
-                    rx.el.button(
-                        "Download Invoice",
-                        rx.icon("download", class_name="ml-2"),
-                        on_click=PrintState.download_invoice,
-                        disabled=PrintState.is_download_disabled,
-                        class_name="w-full p-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center",
-                    ),
                     class_name="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm flex flex-col gap-4 mb-6",
                 ),
                 rx.el.div(

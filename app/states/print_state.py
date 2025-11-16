@@ -149,10 +149,6 @@ class PrintState(rx.State):
             or not self.invoice_customer_name.strip()
         )
 
-    @rx.var
-    def is_download_disabled(self) -> bool:
-        return len(self.add_selected_transactions) == 0
-
     def _generate_invoice_content(self) -> str:
         if not self.invoice_selected_transactions:
             return ""
@@ -224,15 +220,6 @@ class PrintState(rx.State):
         total_section = f"\n\n*TOTAL: ₹{total_amount:.2f}*"
         footer = f"\n\nThank you!\n- {self.business_name} -"
         return f"{header}{details}{items_header}{items}{total_section}{footer}"
-
-    @rx.event
-    def download_invoice(self):
-        if not self.add_selected_transactions:
-            return rx.toast("Please select transactions to download.", duration=3000)
-        content = self._generate_add_invoice_content()
-        filename = f"invoice_{datetime.date.today().isoformat()}.txt"
-        yield rx.download(data=content, filename=filename)
-        yield rx.toast("Invoice downloaded!", duration=3000)
 
     @rx.event
     def share_invoice(self):
