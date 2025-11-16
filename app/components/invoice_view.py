@@ -45,11 +45,20 @@ def invoice_view() -> rx.Component:
             rx.el.div(
                 rx.el.h2("Download Invoice", class_name="text-xl font-bold mb-4"),
                 rx.el.div(
-                    rx.el.input(
-                        placeholder="Customer Name (Overrides selection)",
-                        on_change=PrintState.set_invoice_customer_name,
-                        default_value=PrintState.invoice_customer_name,
-                        class_name="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500",
+                    rx.el.div(
+                        rx.el.input(
+                            placeholder="Customer Name (Required for invoice)",
+                            on_change=PrintState.set_invoice_customer_name,
+                            default_value=PrintState.invoice_customer_name,
+                            class_name="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500",
+                        ),
+                        rx.el.button(
+                            rx.icon("download", size=20),
+                            on_click=PrintState.download_invoice,
+                            disabled=PrintState.is_share_disabled,
+                            class_name="p-3 text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed",
+                        ),
+                        class_name="flex items-center gap-2",
                     ),
                     rx.el.input(
                         placeholder="Invoice Number (Optional)",
@@ -69,13 +78,6 @@ def invoice_view() -> rx.Component:
                         class_name="text-lg text-gray-600 font-medium",
                     ),
                     rx.el.div(
-                        rx.el.button(
-                            "Copy to Clipboard",
-                            rx.icon("copy", class_name="ml-2"),
-                            on_click=PrintState.share_invoice,
-                            disabled=PrintState.is_share_disabled,
-                            class_name="w-full p-3 bg-gray-500 text-white font-semibold rounded-lg hover:bg-gray-600 transition-colors shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center",
-                        ),
                         rx.el.a(
                             rx.el.button(
                                 "Share via WhatsApp",
@@ -85,8 +87,9 @@ def invoice_view() -> rx.Component:
                             ),
                             href=PrintState.whatsapp_share_url,
                             is_external=True,
+                            class_name="w-full",
                         ),
-                        class_name="grid grid-cols-2 gap-3 mt-4",
+                        class_name="flex gap-3 mt-4",
                     ),
                     class_name="bg-white p-6 rounded-b-2xl border-x border-b border-gray-200/80 shadow-sm",
                 ),

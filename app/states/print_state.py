@@ -185,14 +185,14 @@ class PrintState(rx.State):
             self.invoice_selected_transactions.add(transaction_id)
 
     @rx.event
-    def share_invoice(self):
+    def download_invoice(self):
         if not self.invoice_selected_transactions:
-            return rx.toast("Please select transactions to share.", duration=3000)
+            return rx.toast("Please select transactions to download.", duration=3000)
         if not self.invoice_customer_name.strip():
             return rx.toast("Please enter a customer name.", duration=3000)
         content = self._generate_invoice_content()
-        yield rx.set_clipboard(content)
-        yield rx.toast("Invoice content copied to clipboard!", duration=3000)
+        filename = f"Invoice-{self.invoice_customer_name.replace(' ', '_')}-{datetime.date.today().isoformat()}.txt"
+        return rx.download(data=content, filename=filename)
 
     @rx.event
     def web_share_invoice(self):
