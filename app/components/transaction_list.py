@@ -4,8 +4,17 @@ from app.components.transaction_form import transaction_form
 
 
 def transaction_item(transaction: Transaction) -> rx.Component:
+    is_selected = PrintState.add_selected_transactions.contains(transaction["id"])
     return rx.el.div(
         rx.el.div(
+            rx.el.input(
+                type="checkbox",
+                checked=is_selected,
+                on_change=lambda _: PrintState.toggle_add_transaction(
+                    transaction["id"]
+                ),
+                class_name="h-5 w-5 rounded text-purple-600 border-gray-300 focus:ring-purple-500 cursor-pointer mr-4",
+            ),
             rx.el.div(
                 rx.icon(
                     rx.match(
@@ -44,7 +53,7 @@ def transaction_item(transaction: Transaction) -> rx.Component:
                     rx.el.p(
                         transaction["timestamp"], class_name="text-sm text-gray-500"
                     ),
-                    class_name="flex items-center gap-2 mt-1",
+                    class_name="flex items-center gap-4",
                 ),
                 class_name="flex-grow",
             ),
@@ -67,11 +76,14 @@ def transaction_item(transaction: Transaction) -> rx.Component:
                 rx.icon("trash-2", size=16),
                 on_click=lambda: PrintState.delete_transaction(transaction["id"]),
                 class_name="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors",
-                type="button",
             ),
             class_name="flex items-center gap-4",
         ),
-        class_name="flex justify-between items-center p-4 border-b border-gray-100 hover:bg-gray-50/50 transition-colors",
+        class_name=rx.cond(
+            is_selected,
+            "flex justify-between items-center p-4 border-b border-gray-100 bg-purple-50/50 transition-colors",
+            "flex justify-between items-center p-4 border-b border-gray-100 hover:bg-gray-50/50 transition-colors",
+        ),
     )
 
 
@@ -80,9 +92,34 @@ def transactions_view() -> rx.Component:
         rx.el.div(
             transaction_form(),
             rx.el.div(
-                rx.el.h2(
-                    "Recent Transactions",
-                    class_name="text-xl font-bold text-gray-800 mb-4",
+                rx.el.div(
+                    rx.el.h2(
+                        "Recent Transactions",
+                        class_name="text-xl font-bold text-gray-800",
+                    ),
+                    rx.el.p(
+                        "Select print jobs to generate a quick invoice.",
+                        class_name="text-gray-500",
+                    ),
+                    class_name="mb-4",
+                ),
+                rx.el.div(
+                    rx.el.p(
+                        "Invoice Total:",
+                        rx.el.span(
+                            f" ₹{PrintState.add_invoice_total:.2f}",
+                            class_name="font-bold text-2xl ml-2",
+                        ),
+                        class_name="text-lg text-gray-600 font-medium",
+                    ),
+                    rx.el.button(
+                        "Download Invoice",
+                        rx.icon("download", class_name="ml-2"),
+                        on_click=PrintState.download_invoice,
+                        disabled=PrintState.is_download_disabled,
+                        class_name="w-full p-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center",
+                    ),
+                    class_name="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm flex flex-col gap-4 mb-6",
                 ),
                 rx.el.div(
                     rx.cond(
