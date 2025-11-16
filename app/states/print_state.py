@@ -4,6 +4,7 @@ import datetime
 import time
 import logging
 import json
+import urllib.parse
 
 TransactionType = Literal["print", "expense", "cash"]
 
@@ -132,6 +133,39 @@ class PrintState(rx.State):
         }
         return sum((t["amount"] for t in selected_txs))
 
+    @rx.var
+    def is_share_disabled(self) -> bool:
+        return len(self.invoice_selected_transactions) == 0
+
+    def _generate_invoice_content(self) -> str:
+        if not self.invoice_selected_transactions:
+            return ""
+        all_transactions = self._get_transactions()
+        selected_txs = [
+            t for t in all_transactions if t["id"] in self.invoice_selected_transactions
+        ]
+        total_amount = sum((t["amount"] for t in selected_txs))
+        customer_name = self.invoice_customer_name or "N/A"
+        invoice_num = self.invoice_number or "N/A"
+        invoice_date = datetime.date.today().isoformat()
+        header = f"*INVOICE - {self.business_name}*\n\n"
+        details = f"Invoice #: {invoice_num}\nCustomer: {customer_name}\nDate: {invoice_date}\n\n"
+        items_header = """*Items:*
+"""
+        items = """
+""".join([f"- {tx['description']}: ₹{tx['amount']:.2f}" for tx in selected_txs])
+        total_section = f"\n\n*TOTAL: ₹{total_amount:.2f}*"
+        footer = f"\n\nThank you for your business!\n- {self.business_name} -"
+        return f"{header}{details}{items_header}{items}{total_section}{footer}"
+
+    @rx.var
+    def whatsapp_share_url(self) -> str:
+        if self.is_share_disabled:
+            return "#"
+        content = self._generate_invoice_content()
+        encoded_content = urllib.parse.quote(content)
+        return f"https://api.whatsapp.com/send?text={encoded_content}"
+
     @rx.event
     def set_invoice_customer_name(self, name: str):
         self.invoice_customer_name = name
@@ -148,47 +182,32 @@ class PrintState(rx.State):
             self.invoice_selected_transactions.add(transaction_id)
 
     @rx.event
+    def share_invoice(self):
+        if self.is_share_disabled:
+            return rx.toast("Please select transactions to share.", duration=3000)
+        content = self._generate_invoice_content()
+        yield rx.set_clipboard(content)
+        yield rx.toast("Invoice content copied to clipboard!", duration=3000)
+
+    @rx.event
+    def web_share_invoice(self):
+        if self.is_share_disabled:
+            return rx.toast("Please select transactions to share.", duration=3000)
+        content = self._generate_invoice_content()
+        js_code = f"\n        if (navigator.share) {{\n            navigator.share({{\n                title: 'Invoice from {self.business_name}',\n                text: `{content}`,\n            }}).then(() => {{\n                console.log('Shared successfully');\n            }}).catch(console.error);\n        }} else {{\n            navigator.clipboard.writeText(`{content}`);\n            alert('Web Share API not supported. Invoice copied to clipboard.');\n        }}\n        "
+        return rx.call_script(js_code)
+
+    @rx.event
     def generate_invoice(self):
-        if not self.invoice_selected_transactions:
+        if self.is_share_disabled:
             return rx.toast("Please select at least one transaction.", duration=3000)
-        all_transactions = self._get_transactions()
-        selected_txs = [
-            t for t in all_transactions if t["id"] in self.invoice_selected_transactions
-        ]
-        total_amount = sum((t["amount"] for t in selected_txs))
-        invoice_content = [
-            "===================================",
-            f"         {self.business_name.upper()}         ",
-            "===================================",
-            "             INVOICE               ",
-            "===================================",
-            f"Invoice #: {self.invoice_number or 'N/A'}",
-            f"Customer: {self.invoice_customer_name or 'N/A'}",
-            f"Date: {datetime.date.today().isoformat()}",
-            "-----------------------------------",
-            "Description          Amount",
-            "-----------------------------------",
-        ]
-        for tx in selected_txs:
-            description = tx["description"][:20].ljust(20)
-            amount_str = f"Rs {tx['amount']:.2f}".rjust(12)
-            invoice_content.append(f"{description} {amount_str}")
-        invoice_content.extend(
-            [
-                "-----------------------------------",
-                f"TOTAL:               Rs {total_amount:.2f}",
-                "===================================",
-                "Thank you for your business!",
-                f"- {self.business_name} -",
-            ]
-        )
-        invoice_data = """
-""".join(invoice_content)
+        invoice_data = self._generate_invoice_content().replace("*", "")
         file_name = f"invoice_{self.invoice_number or int(time.time())}.txt"
         self.invoice_selected_transactions = set()
         self.invoice_customer_name = ""
         self.invoice_number = ""
-        return rx.download(data=invoice_data, filename=file_name)
+        yield rx.toast("Invoice generated and downloading...", duration=3000)
+        yield rx.download(data=invoice_data, filename=file_name)
 
     @rx.event
     def set_active_view(self, view: str):
