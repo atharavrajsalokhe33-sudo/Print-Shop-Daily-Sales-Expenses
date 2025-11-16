@@ -58,7 +58,8 @@ def invoice_view() -> rx.Component:
     return rx.el.div(
         rx.el.div(
             rx.el.h1(
-                "Transaction History", class_name="text-3xl font-bold text-gray-800"
+                f"{PrintState.business_name}",
+                class_name="text-3xl font-bold text-gray-800",
             ),
             rx.el.p(
                 "Select transactions to generate an invoice.",

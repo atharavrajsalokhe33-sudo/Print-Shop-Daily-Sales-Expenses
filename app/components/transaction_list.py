@@ -97,6 +97,10 @@ def transaction_item(transaction: Transaction) -> rx.Component:
 
 def transactions_view() -> rx.Component:
     return rx.el.div(
+        rx.el.h1(
+            f"{PrintState.business_name}",
+            class_name="text-3xl font-bold text-gray-800 mb-8",
+        ),
         rx.el.div(
             transaction_form(),
             rx.el.div(
