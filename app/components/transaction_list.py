@@ -28,7 +28,24 @@ def transaction_item(transaction: Transaction) -> rx.Component:
                 rx.el.p(
                     transaction["description"], class_name="font-semibold text-gray-800"
                 ),
-                rx.el.p(transaction["timestamp"], class_name="text-sm text-gray-500"),
+                rx.el.div(
+                    rx.cond(
+                        transaction["customer_name"],
+                        rx.el.div(
+                            rx.icon("user", size=12, class_name="mr-1 text-gray-500"),
+                            rx.el.span(
+                                transaction["customer_name"],
+                                class_name="text-xs text-gray-600",
+                            ),
+                            class_name="flex items-center",
+                        ),
+                        rx.fragment(),
+                    ),
+                    rx.el.p(
+                        transaction["timestamp"], class_name="text-sm text-gray-500"
+                    ),
+                    class_name="flex items-center gap-2 mt-1",
+                ),
                 class_name="flex-grow",
             ),
             class_name="flex items-center gap-4",

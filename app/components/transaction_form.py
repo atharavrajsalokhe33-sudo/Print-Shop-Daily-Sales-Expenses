@@ -17,6 +17,24 @@ def _form_button(text: str, form_type: str) -> rx.Component:
 
 def _print_form_fields() -> rx.Component:
     return rx.el.div(
+        rx.el.input(
+            name="customer_name",
+            placeholder="Customer Name (optional)",
+            class_name="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all",
+        ),
+        rx.el.input(
+            name="customer_phone",
+            placeholder="Customer Phone (optional)",
+            type="tel",
+            class_name="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all",
+        ),
+        rx.el.input(
+            name="customer_email",
+            placeholder="Customer Email (optional)",
+            type="email",
+            class_name="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all",
+        ),
+        rx.el.div(class_name="border-t border-gray-200"),
         rx.el.select(
             rx.el.option("Color Print", value="color"),
             rx.el.option("B&W 1-Side", value="bw_1_side"),
@@ -27,8 +45,9 @@ def _print_form_fields() -> rx.Component:
         ),
         rx.el.input(
             name="pages",
-            placeholder="Number of Pages",
+            placeholder="Number of Pages *",
             type="number",
+            required=True,
             class_name="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all",
         ),
         rx.el.input(
@@ -40,9 +59,10 @@ def _print_form_fields() -> rx.Component:
             PrintState.print_type == "color",
             rx.el.input(
                 name="amount",
-                placeholder="Total Amount (₹)",
+                placeholder="Total Amount (₹) *",
                 type="number",
                 step="0.01",
+                required=True,
                 class_name="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all",
             ),
             rx.fragment(),

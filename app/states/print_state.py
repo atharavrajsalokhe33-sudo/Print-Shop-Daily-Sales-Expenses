@@ -14,6 +14,9 @@ class Transaction(TypedDict):
     type: TransactionType
     description: str
     amount: float
+    customer_name: str
+    customer_phone: str
+    customer_email: str
 
 
 DEFAULT_TRANSACTIONS = [
@@ -23,6 +26,9 @@ DEFAULT_TRANSACTIONS = [
         "type": "print",
         "description": "Color Print (5 pages)",
         "amount": 50.0,
+        "customer_name": "John Doe",
+        "customer_phone": "1234567890",
+        "customer_email": "john.doe@example.com",
     },
     {
         "id": 1718883660.0,
@@ -30,6 +36,9 @@ DEFAULT_TRANSACTIONS = [
         "type": "expense",
         "description": "Paper Ream",
         "amount": -550.0,
+        "customer_name": "",
+        "customer_phone": "",
+        "customer_email": "",
     },
     {
         "id": 1718883720.0,
@@ -37,6 +46,9 @@ DEFAULT_TRANSACTIONS = [
         "type": "print",
         "description": "B&W 1-Side (20 pages)",
         "amount": 40.0,
+        "customer_name": "Jane Smith",
+        "customer_phone": "0987654321",
+        "customer_email": "jane.smith@example.com",
     },
 ]
 
@@ -197,12 +209,19 @@ class PrintState(rx.State):
             today_str = datetime.date.today().isoformat()
             transactions = self._get_transactions()
             if self.form_type == "print":
-                pages = int(form_data.get("pages", 0))
+                pages_str = form_data.get("pages", "").strip()
+                if not pages_str:
+                    yield rx.toast("Number of pages is required.", duration=3000)
+                    return
+                pages = int(pages_str)
                 if pages <= 0:
                     yield rx.toast("Number of pages must be positive.", duration=3000)
                     return
                 print_type = form_data["print_type"]
                 note = form_data.get("note", "").strip()
+                customer_name = form_data.get("customer_name", "").strip()
+                customer_phone = form_data.get("customer_phone", "").strip()
+                customer_email = form_data.get("customer_email", "").strip()
                 amount = 0.0
                 base_description = ""
                 if print_type == "color":
@@ -229,6 +248,9 @@ class PrintState(rx.State):
                         "type": "print",
                         "description": description,
                         "amount": amount,
+                        "customer_name": customer_name,
+                        "customer_phone": customer_phone,
+                        "customer_email": customer_email,
                     }
                 )
                 self._save_transactions(transactions)
@@ -248,6 +270,9 @@ class PrintState(rx.State):
                         "type": "expense",
                         "description": description,
                         "amount": -amount,
+                        "customer_name": "",
+                        "customer_phone": "",
+                        "customer_email": "",
                     }
                 )
                 self._save_transactions(transactions)

@@ -36,54 +36,59 @@ def _invoice_transaction_item(transaction: Transaction) -> rx.Component:
 
 def invoice_view() -> rx.Component:
     return rx.el.div(
-        rx.el.h1("Create Invoice", class_name="text-3xl font-bold text-gray-800"),
+        rx.el.h1("History & Invoicing", class_name="text-3xl font-bold text-gray-800"),
         rx.el.p(
-            "Select transactions to generate a downloadable invoice.",
+            "Review transaction history and generate downloadable invoices.",
             class_name="text-gray-500 mt-1 mb-8",
         ),
         rx.el.div(
             rx.el.div(
-                rx.el.h2("Invoice Details", class_name="text-xl font-bold mb-4"),
-                rx.el.input(
-                    placeholder="Customer Name (Optional)",
-                    on_change=PrintState.set_invoice_customer_name,
-                    default_value=PrintState.invoice_customer_name,
-                    class_name="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500",
+                rx.el.h2("Download Invoice", class_name="text-xl font-bold mb-4"),
+                rx.el.div(
+                    rx.el.input(
+                        placeholder="Customer Name (Overrides selection)",
+                        on_change=PrintState.set_invoice_customer_name,
+                        default_value=PrintState.invoice_customer_name,
+                        class_name="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500",
+                    ),
+                    rx.el.input(
+                        placeholder="Invoice Number (Optional)",
+                        on_change=PrintState.set_invoice_number,
+                        default_value=PrintState.invoice_number,
+                        class_name="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500",
+                    ),
+                    class_name="bg-white p-6 rounded-t-2xl border-x border-t border-gray-200/80 shadow-sm flex flex-col gap-4",
                 ),
-                rx.el.input(
-                    placeholder="Invoice Number (Optional)",
-                    on_change=PrintState.set_invoice_number,
-                    default_value=PrintState.invoice_number,
-                    class_name="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500",
+                rx.el.div(
+                    rx.el.p(
+                        "Total:",
+                        rx.el.span(
+                            f" ₹{PrintState.invoice_total:.2f}",
+                            class_name="font-bold text-2xl ml-2",
+                        ),
+                        class_name="text-lg text-gray-600 font-medium",
+                    ),
+                    rx.el.button(
+                        "Generate & Download Invoice",
+                        rx.icon("download", class_name="ml-2"),
+                        on_click=PrintState.generate_invoice,
+                        disabled=PrintState.invoice_selected_transactions.length() == 0,
+                        class_name="w-full mt-4 p-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center",
+                    ),
+                    class_name="bg-white p-6 rounded-b-2xl border-x border-b border-gray-200/80 shadow-sm",
                 ),
-                class_name="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm flex flex-col gap-4",
             ),
             rx.el.div(
-                rx.el.h2("Select Transactions", class_name="text-xl font-bold mb-4"),
+                rx.el.h2(
+                    "Select Transactions for Invoice",
+                    class_name="text-xl font-bold mb-4",
+                ),
                 rx.el.div(
                     rx.foreach(
                         PrintState.recent_transactions, _invoice_transaction_item
                     ),
-                    class_name="max-h-96 overflow-y-auto bg-white rounded-2xl border border-gray-200/80 shadow-sm",
+                    class_name="max-h-[60vh] overflow-y-auto bg-white rounded-2xl border border-gray-200/80 shadow-sm",
                 ),
-            ),
-            rx.el.div(
-                rx.el.p(
-                    "Total:",
-                    rx.el.span(
-                        f" ₹{PrintState.invoice_total:.2f}",
-                        class_name="font-bold text-2xl ml-2",
-                    ),
-                    class_name="text-lg text-gray-600 font-medium",
-                ),
-                rx.el.button(
-                    "Generate & Download Invoice",
-                    rx.icon("download", class_name="ml-2"),
-                    on_click=PrintState.generate_invoice,
-                    disabled=PrintState.invoice_selected_transactions.length() == 0,
-                    class_name="w-full mt-4 p-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-colors shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center",
-                ),
-                class_name="bg-white p-6 rounded-2xl border border-gray-200/80 shadow-sm",
             ),
             class_name="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start",
         ),

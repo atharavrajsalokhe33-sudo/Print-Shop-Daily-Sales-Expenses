@@ -13,7 +13,7 @@ def main_layout() -> rx.Component:
                 PrintState.active_view,
                 ("dashboard", dashboard_view()),
                 ("add", transactions_view()),
-                ("invoice", invoice_view()),
+                ("history", invoice_view()),
                 dashboard_view(),
             ),
             class_name="p-4 sm:p-6 lg:p-8 pb-24 md:pb-8",
