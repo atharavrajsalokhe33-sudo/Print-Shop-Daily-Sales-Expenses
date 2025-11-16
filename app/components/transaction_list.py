@@ -6,6 +6,23 @@ from app.components.transaction_form import transaction_form
 def transaction_item(transaction: Transaction) -> rx.Component:
     return rx.el.div(
         rx.el.div(
+            rx.cond(
+                PrintState.active_view == "history",
+                rx.el.div(
+                    rx.el.input(
+                        type="checkbox",
+                        checked=PrintState.selected_transaction_ids.contains(
+                            transaction["id"]
+                        ),
+                        on_change=lambda _: PrintState.toggle_transaction_selection(
+                            transaction["id"]
+                        ),
+                        class_name="h-5 w-5 rounded border-gray-300 text-purple-600 focus:ring-purple-500 cursor-pointer",
+                    ),
+                    class_name="flex items-center justify-center mr-4",
+                ),
+                rx.fragment(),
+            ),
             rx.el.div(
                 rx.icon(
                     rx.match(

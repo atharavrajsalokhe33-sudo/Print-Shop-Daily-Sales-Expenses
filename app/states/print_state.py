@@ -1,5 +1,5 @@
 import reflex as rx
-from typing import TypedDict, Literal
+from typing import TypedDict, Literal, cast
 import datetime
 import time
 import logging
@@ -65,6 +65,9 @@ class PrintState(rx.State):
     business_upi_id: str = "your.business@upi"
     business_upi_number: str = "9876543210"
     business_qr_code_url: str = "/placeholder.svg"
+    selected_transaction_ids: list[float] = []
+    customer_name_for_invoice: str = ""
+    invoice_number: str = ""
 
     def _get_transactions(self) -> list[Transaction]:
         try:
@@ -120,6 +123,30 @@ class PrintState(rx.State):
     def recent_transactions(self) -> list[Transaction]:
         return sorted(self.transactions, key=lambda t: t["id"], reverse=True)
 
+    @rx.var
+    def selected_transactions(self) -> list[Transaction]:
+        return [
+            t for t in self.transactions if t["id"] in self.selected_transaction_ids
+        ]
+
+    @rx.var
+    def selected_transactions_total(self) -> float:
+        return sum((t["amount"] for t in self.selected_transactions))
+
+    @rx.var
+    def generate_invoice_text(self) -> str:
+        if not self.customer_name_for_invoice or not self.selected_transactions:
+            return ""
+        inv_num = self.invoice_number.strip() or f"INV-{int(time.time())}"
+        today_str = datetime.date.today().isoformat()
+        header = f"{self.business_name}\n--------------------\nInvoice To: {self.customer_name_for_invoice}\nInvoice #: {inv_num}\nDate: {today_str}\n--------------------\n\n"
+        items = """Items:
+"""
+        for item in self.selected_transactions:
+            items += f"- {item['description']}: ₹{item['amount']:.2f}\n"
+        footer = f"\n--------------------\nTotal Amount: ₹{self.selected_transactions_total:.2f}\n--------------------\nThank you for your business!\n"
+        return header + items + footer
+
     @rx.event
     def set_active_view(self, view: str):
         self.active_view = view
@@ -131,6 +158,41 @@ class PrintState(rx.State):
     @rx.event
     def set_print_type(self, type: str):
         self.print_type = type
+
+    @rx.event
+    def toggle_transaction_selection(self, transaction_id: float):
+        if transaction_id in self.selected_transaction_ids:
+            self.selected_transaction_ids.remove(transaction_id)
+        else:
+            self.selected_transaction_ids.append(transaction_id)
+
+    @rx.event
+    def download_invoice(self):
+        if not self.generate_invoice_text:
+            return rx.toast(
+                "Please select transactions and enter a customer name.", duration=3000
+            )
+        inv_num = self.invoice_number.strip() or f"INV-{int(time.time())}"
+        return rx.download(
+            data=PrintState.generate_invoice_text.encode("utf-8"),
+            filename=f"Invoice-{inv_num}-{self.customer_name_for_invoice}.txt",
+        )
+
+    @rx.event
+    def share_invoice_whatsapp(self):
+        if not self.generate_invoice_text:
+            return rx.toast(
+                "Please select transactions and enter a customer name.", duration=3000
+            )
+        phone_number = ""
+        for t in self.selected_transactions:
+            transaction = cast(Transaction, t)
+            if transaction.get("customer_phone"):
+                phone_number = transaction["customer_phone"]
+                break
+        message = urllib.parse.quote(self.generate_invoice_text)
+        url = f"https://wa.me/{phone_number}?text={message}"
+        return rx.redirect(url, external=True)
 
     @rx.event
     def add_transaction(self, form_data: dict):
