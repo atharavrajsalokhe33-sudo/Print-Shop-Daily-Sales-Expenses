@@ -43,22 +43,13 @@ def invoice_view() -> rx.Component:
         ),
         rx.el.div(
             rx.el.div(
-                rx.el.h2("Download Invoice", class_name="text-xl font-bold mb-4"),
+                rx.el.h2("Create Invoice", class_name="text-xl font-bold mb-4"),
                 rx.el.div(
-                    rx.el.div(
-                        rx.el.input(
-                            placeholder="Customer Name (Required for invoice)",
-                            on_change=PrintState.set_invoice_customer_name,
-                            default_value=PrintState.invoice_customer_name,
-                            class_name="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500",
-                        ),
-                        rx.el.button(
-                            rx.icon("download", size=20),
-                            on_click=PrintState.download_invoice,
-                            disabled=PrintState.is_share_disabled,
-                            class_name="p-3 text-gray-500 bg-gray-100 hover:bg-gray-200 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed",
-                        ),
-                        class_name="flex items-center gap-2",
+                    rx.el.input(
+                        placeholder="Customer Name (Required for invoice)",
+                        on_change=PrintState.set_invoice_customer_name,
+                        default_value=PrintState.invoice_customer_name,
+                        class_name="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500",
                     ),
                     rx.el.input(
                         placeholder="Invoice Number (Optional)",
