@@ -65,9 +65,6 @@ class PrintState(rx.State):
     business_upi_id: str = "your.business@upi"
     business_upi_number: str = "9876543210"
     business_qr_code_url: str = "/placeholder.svg"
-    invoice_selected_transactions: set[float] = set()
-    invoice_customer_name: str = ""
-    invoice_number: str = ""
 
     def _get_transactions(self) -> list[Transaction]:
         try:
@@ -122,77 +119,6 @@ class PrintState(rx.State):
     @rx.var
     def recent_transactions(self) -> list[Transaction]:
         return sorted(self.transactions, key=lambda t: t["id"], reverse=True)
-
-    @rx.var
-    def invoice_total(self) -> float:
-        """Calculates the total amount for the selected invoice transactions."""
-        selected_txs = {
-            t
-            for t in self.transactions
-            if t["id"] in self.invoice_selected_transactions
-        }
-        return sum((t["amount"] for t in selected_txs))
-
-    @rx.var
-    def is_share_disabled(self) -> bool:
-        return (
-            len(self.invoice_selected_transactions) == 0
-            or not self.invoice_customer_name.strip()
-        )
-
-    def _generate_invoice_content(self) -> str:
-        if not self.invoice_selected_transactions:
-            return ""
-        all_transactions = self._get_transactions()
-        selected_txs = [
-            t for t in all_transactions if t["id"] in self.invoice_selected_transactions
-        ]
-        total_amount = sum((t["amount"] for t in selected_txs))
-        customer_name = self.invoice_customer_name or "N/A"
-        invoice_num = self.invoice_number or "N/A"
-        invoice_date = datetime.date.today().isoformat()
-        header = f"*INVOICE - {self.business_name}*\n\n"
-        details = f"Invoice #: {invoice_num}\nCustomer: {customer_name}\nDate: {invoice_date}\n\n"
-        items_header = """*Items:*
-"""
-        items = """
-""".join([f"- {tx['description']}: ₹{tx['amount']:.2f}" for tx in selected_txs])
-        total_section = f"\n\n*TOTAL: ₹{total_amount:.2f}*"
-        footer = f"\n\nThank you for your business!\n- {self.business_name} -"
-        return f"{header}{details}{items_header}{items}{total_section}{footer}"
-
-    @rx.var
-    def whatsapp_share_url(self) -> str:
-        if self.is_share_disabled:
-            return "#"
-        content = self._generate_invoice_content()
-        encoded_content = urllib.parse.quote(content)
-        return f"https://api.whatsapp.com/send?text={encoded_content}"
-
-    @rx.event
-    def set_invoice_customer_name(self, name: str):
-        self.invoice_customer_name = name
-
-    @rx.event
-    def set_invoice_number(self, num: str):
-        self.invoice_number = num
-
-    @rx.event
-    def toggle_invoice_transaction(self, transaction_id: float):
-        if transaction_id in self.invoice_selected_transactions:
-            self.invoice_selected_transactions.remove(transaction_id)
-        else:
-            self.invoice_selected_transactions.add(transaction_id)
-
-    @rx.event
-    def web_share_invoice(self):
-        if not self.invoice_selected_transactions:
-            return rx.toast("Please select transactions to share.", duration=3000)
-        if not self.invoice_customer_name.strip():
-            return rx.toast("Please enter a customer name.", duration=3000)
-        content = self._generate_invoice_content()
-        js_code = f"\n        if (navigator.share) {{\n            navigator.share({{\n                title: 'Invoice from {self.business_name}',\n                text: `{content}`\n            }}).then(() => {{\n                console.log('Shared successfully');\n            }}).catch(console.error);\n        }} else {{\n            navigator.clipboard.writeText(`{content}`);\n            alert('Web Share API not supported. Invoice copied to clipboard.');\n        }}\n        "
-        return rx.call_script(js_code)
 
     @rx.event
     def set_active_view(self, view: str):

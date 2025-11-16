@@ -63,10 +63,14 @@ def transaction_item(transaction: Transaction) -> rx.Component:
                     "font-bold text-red-600",
                 ),
             ),
-            rx.el.button(
-                rx.icon("trash-2", size=16),
-                on_click=lambda: PrintState.delete_transaction(transaction["id"]),
-                class_name="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors",
+            rx.cond(
+                PrintState.active_view != "history",
+                rx.el.button(
+                    rx.icon("trash-2", size=16),
+                    on_click=lambda: PrintState.delete_transaction(transaction["id"]),
+                    class_name="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors",
+                ),
+                rx.fragment(),
             ),
             class_name="flex items-center gap-4",
         ),
