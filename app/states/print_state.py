@@ -135,7 +135,10 @@ class PrintState(rx.State):
 
     @rx.var
     def is_share_disabled(self) -> bool:
-        return len(self.invoice_selected_transactions) == 0
+        return (
+            len(self.invoice_selected_transactions) == 0
+            or not self.invoice_customer_name.strip()
+        )
 
     def _generate_invoice_content(self) -> str:
         if not self.invoice_selected_transactions:
@@ -183,31 +186,23 @@ class PrintState(rx.State):
 
     @rx.event
     def share_invoice(self):
-        if self.is_share_disabled:
+        if not self.invoice_selected_transactions:
             return rx.toast("Please select transactions to share.", duration=3000)
+        if not self.invoice_customer_name.strip():
+            return rx.toast("Please enter a customer name.", duration=3000)
         content = self._generate_invoice_content()
         yield rx.set_clipboard(content)
         yield rx.toast("Invoice content copied to clipboard!", duration=3000)
 
     @rx.event
     def web_share_invoice(self):
-        if self.is_share_disabled:
+        if not self.invoice_selected_transactions:
             return rx.toast("Please select transactions to share.", duration=3000)
+        if not self.invoice_customer_name.strip():
+            return rx.toast("Please enter a customer name.", duration=3000)
         content = self._generate_invoice_content()
-        js_code = f"\n        if (navigator.share) {{\n            navigator.share({{\n                title: 'Invoice from {self.business_name}',\n                text: `{content}`,\n            }}).then(() => {{\n                console.log('Shared successfully');\n            }}).catch(console.error);\n        }} else {{\n            navigator.clipboard.writeText(`{content}`);\n            alert('Web Share API not supported. Invoice copied to clipboard.');\n        }}\n        "
+        js_code = f"\n        if (navigator.share) {{\n            navigator.share({{\n                title: 'Invoice from {self.business_name}',\n                text: `{content}`\n            }}).then(() => {{\n                console.log('Shared successfully');\n            }}).catch(console.error);\n        }} else {{\n            navigator.clipboard.writeText(`{content}`);\n            alert('Web Share API not supported. Invoice copied to clipboard.');\n        }}\n        "
         return rx.call_script(js_code)
-
-    @rx.event
-    def generate_invoice(self):
-        if self.is_share_disabled:
-            return rx.toast("Please select at least one transaction.", duration=3000)
-        invoice_data = self._generate_invoice_content().replace("*", "")
-        file_name = f"invoice_{self.invoice_number or int(time.time())}.txt"
-        self.invoice_selected_transactions = set()
-        self.invoice_customer_name = ""
-        self.invoice_number = ""
-        yield rx.toast("Invoice generated and downloading...", duration=3000)
-        yield rx.download(data=invoice_data, filename=file_name)
 
     @rx.event
     def set_active_view(self, view: str):
@@ -229,6 +224,10 @@ class PrintState(rx.State):
             transactions = self._get_transactions()
             if self.form_type == "print":
                 pages_str = form_data.get("pages", "").strip()
+                customer_name = form_data.get("customer_name", "").strip()
+                if not customer_name:
+                    yield rx.toast("Customer name is required.", duration=3000)
+                    return
                 if not pages_str:
                     yield rx.toast("Number of pages is required.", duration=3000)
                     return
@@ -238,7 +237,6 @@ class PrintState(rx.State):
                     return
                 print_type = form_data["print_type"]
                 note = form_data.get("note", "").strip()
-                customer_name = form_data.get("customer_name", "").strip()
                 customer_phone = form_data.get("customer_phone", "").strip()
                 customer_email = form_data.get("customer_email", "").strip()
                 amount = 0.0
@@ -252,6 +250,12 @@ class PrintState(rx.State):
                 elif print_type == "bw_2_side":
                     amount = pages * 3.0
                     base_description = f"B&W 2-Side ({pages} pages)"
+                elif print_type == "xerox_color":
+                    amount = pages * 10.0
+                    base_description = f"Xerox Color Copy ({pages} pages)"
+                elif print_type == "xerox_bw":
+                    amount = pages * 2.0
+                    base_description = f"Xerox B&W Copy ({pages} pages)"
                 description = (
                     f"{note}: {base_description}" if note else base_description
                 )

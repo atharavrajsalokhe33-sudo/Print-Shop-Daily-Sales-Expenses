@@ -19,7 +19,8 @@ def _print_form_fields() -> rx.Component:
     return rx.el.div(
         rx.el.input(
             name="customer_name",
-            placeholder="Customer Name (optional)",
+            placeholder="Customer Name *",
+            required=True,
             class_name="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all",
         ),
         rx.el.input(
@@ -39,6 +40,8 @@ def _print_form_fields() -> rx.Component:
             rx.el.option("Color Print", value="color"),
             rx.el.option("B&W 1-Side", value="bw_1_side"),
             rx.el.option("B&W 2-Side", value="bw_2_side"),
+            rx.el.option("Xerox Color Copy", value="xerox_color"),
+            rx.el.option("Xerox B&W Copy", value="xerox_bw"),
             name="print_type",
             on_change=PrintState.set_print_type,
             class_name="w-full p-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all",
